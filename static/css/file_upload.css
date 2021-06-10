@@ -1,0 +1,35 @@
+.file {
+  opacity: 0;
+  width: 0.1px;
+  height: 0.1px;
+  position: absolute;
+}
+
+.file-input label {
+  display: block;
+  position: relative;
+  width: 200px;
+  height: 50px;
+  background: #f5feaf;
+  box-shadow: 0 4px 7px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #313236;
+  cursor: pointer;
+  transition: transform 0.2s ease-out;
+  font-family: "Montserrat", sans-serif;
+  font-size: medium;
+}
+
+input:hover + label,
+input:focus + label {
+  transform: scale(1.02);
+}
+
+.file-name {
+  position: absolute;
+  top: 115%;
+  font-size: 0.85rem;
+  color: #ffff;
+}

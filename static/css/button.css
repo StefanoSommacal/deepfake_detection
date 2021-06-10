@@ -1,0 +1,28 @@
+.custom-button {
+  color: #000000;
+  background: #f5feaf;
+  border: 0px;
+  box-shadow: 0 4px 7px rgba(0, 0, 0, 0.4);
+  text-transform: uppercase;
+  width: 250px;
+  height: 55px;
+  transition: transform 0.2s ease-out;
+  font-family: "Montserrat", sans-serif;
+  font-size: medium;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  margin-bottom: 25px;
+  margin-top: 25px;
+}
+
+.custom-button:hover:not([disabled]) {
+  transform: scale(1.02);
+  color: #000000;
+}
+
+.custom-button:disabled {
+  opacity: 50%;
+}

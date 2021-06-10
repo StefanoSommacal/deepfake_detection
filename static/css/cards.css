@@ -1,0 +1,19 @@
+.card {
+  background-color: transparent;
+  border: transparent;
+  border-radius: 0;
+}
+
+.results {
+  border-top: 1px solid #ffff;
+  border-bottom: 1px solid #ffff;
+  margin: 10px;
+}
+
+.home_card {
+  position: absolute;
+  left: 10%;
+  top: 30%;
+  text-align: justify;
+  text-justify: inter-word;
+}

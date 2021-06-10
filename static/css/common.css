@@ -1,0 +1,23 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: url("../img/background.jpg") no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+h2 {
+  color: #ffff;
+  font-family: "Montserrat", sans-serif;
+  margin-bottom: 0;
+}
+
+p {
+  color: #ffff;
+  margin-bottom: 0;
+}

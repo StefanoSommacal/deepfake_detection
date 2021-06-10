@@ -1,0 +1,26 @@
+.nav-container {
+  width: 84%;
+  padding-top: 20px;
+  margin: auto;
+  overflow: hidden;
+}
+
+.nav-right {
+  float: right;
+}
+
+.nav-container a {
+  float: left;
+  color: #ffffff;
+  text-align: center;
+  font-family: "Montserrat", sans-serif;
+  font-size: 18px;
+  padding: 14px 14px;
+  text-decoration: none;
+  border: 2px solid transparent;
+}
+
+.nav-container a:hover {
+  border: 2px solid #f5feaf;
+  transition: 0.6s;
+}

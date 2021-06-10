@@ -1,0 +1,9 @@
+.external {
+  background-color: transparent;
+  border: 1px solid transparent;
+}
+
+.filter {
+  position: relative;
+  left: 28.5%;
+}

@@ -1,0 +1,9 @@
+.chart_wrapper {
+  height: 400px;
+}
+
+canvas {
+  margin: 0 auto;
+  position: absolute;
+  left: 25%;
+}

@@ -1,0 +1,11 @@
+.go-back-text {
+  position: relative;
+  left: 50%;
+  transform: translate(-50%, 0);
+}
+
+.go-back-button {
+  position: relative;
+  left: 50%;
+  transform: translate(-50%, 0);
+}

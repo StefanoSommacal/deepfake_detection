@@ -1,0 +1,14 @@
+.original {
+  color: rgb(0, 155, 0);
+  font-weight: bold;
+}
+
+.suspicious {
+  color: rgb(252, 183, 43);
+  font-weight: bold;
+}
+
+.fake {
+  color: rgb(255, 0, 0);
+  font-weight: bold;
+}

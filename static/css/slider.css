@@ -1,0 +1,17 @@
+.ext {
+  border: 2px solid transparent;
+  background-color: transparent;
+}
+
+.card-body {
+  border: 2px solid #f5feaf;
+  border-radius: 0;
+  background-color: transparent;
+  margin: 10px;
+  padding: 0;
+}
+
+.card-footer {
+  border: 2px solid transparent;
+  background-color: transparent;
+}

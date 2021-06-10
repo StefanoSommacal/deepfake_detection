@@ -1,0 +1,131 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Stylesheets -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0"
+      crossorigin="anonymous"
+    />
+    <link href="{% static 'css/lightslider.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/common.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/navbar.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/model_selection.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/button.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/slider.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/radios.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/file_upload.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/loading.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/owl.carousel.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'css/owl.theme.default.min.css' %}" rel="stylesheet" />
+
+    <!-- Scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8"
+      crossorigin="anonymous"
+    ></script>
+
+    <script src="{% static 'js/owl.carousel.js'%}"></script>
+    <script src="{% static 'js/owl.navigation.js'%}"></script>
+    <script src="{% static 'js/dr_scripts.js'%}"></script>
+    <script src="{% static 'js/zepto.js'%}"></script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>Deepfake Detection</title>
+  </head>
+
+  <body>
+    {% block content %}
+
+    <div id="non_loading">
+      <!-- Navbar -->
+      <div class="nav-container">
+        <a class="active home" href="/">Home</a>
+        <div class="nav-right">
+          <a href="/about">About</a>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <h2 class="text-center display-4">Deepfake detection</h2>
+
+      <!-- Input form -->
+      <form method="post" enctype="multipart/form-data" action="predict_video">
+        {% csrf_token %}
+
+        <!-- Sample selection -->
+        <h2 class="display-6 text-center mt-5">Here you can choose one of our samples:</h2>
+        <div class="d-flex justify-content-center mt-3">
+          <div class="card ext w-75">
+            <div class="owl-carousel owl-theme">
+              {% for video in videos %}
+              <div class="card card-body d-flex justify-content-center" style="height: 300px">
+                <video controls height="80%">
+                  <source src="{{video}}" />
+                </video>
+                <div
+                  class="card-footer d-flex justify-content-center align-items-center custom-radios"
+                >
+                  <input name="sample" type="radio" id="{{video}}" value="{{video}}" />
+                  <label for="{{video}}">
+                    <span>
+                      <img src="{% static 'img/checked.png' %}" />
+                    </span>
+                  </label>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Upload form -->
+        <h2 class="display-6 text-center mt-3">Otherwise, you can upload a video here:</h2>
+        <div class="d-flex justify-content-center">
+          <div class="form-group my-3">
+            <div class="file-input">
+              <input type="file" id="file" name="uploaded_video_name" class="file" />
+              <label for="file">
+                Select file
+                <p class="file-name"></p>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <br />
+
+        <!-- Submit button -->
+        <div class="d-flex justify-content-center mt-3">
+          <input type="submit" value="Submit" class="custom-button" id="submit" disabled />
+        </div>
+      </form>
+    </div>
+
+    <!-- Loading "page" -->
+    <div class="loading" id="loading">
+      <div class="loading_text">
+        <h2 class="display-5 text-center">The video is being analyzed, please wait</h2>
+        <p class="lead text-center">It may take some time</p>
+      </div>
+      <div class="loading_gif">
+        <img src="{% static 'img/loading.gif' %}" height="80" width="80" />
+      </div>
+    </div>
+
+    {% endblock %}
+  </body>
+</html>
