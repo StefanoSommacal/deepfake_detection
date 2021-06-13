@@ -74,7 +74,7 @@
               {% for video in videos %}
               <div class="card card-body d-flex justify-content-center" style="height: 300px">
                 <video controls height="80%">
-                  <source src="{{video}}" />
+                  <source src="{% static video %}" />
                 </video>
                 <div
                   class="card-footer d-flex justify-content-center align-items-center custom-radios"
@@ -97,7 +97,7 @@
         <div class="d-flex justify-content-center">
           <div class="form-group my-3">
             <div class="file-input">
-              <input type="file" id="file" name="uploaded_video_name" class="file" />
+              <input type="file" id="file" name="upload" class="file" />
               <label for="file">
                 Select file
                 <p class="file-name"></p>

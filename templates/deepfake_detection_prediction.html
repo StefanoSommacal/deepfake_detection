@@ -57,11 +57,11 @@
     <!-- Result -->
     <div class="d-flex justify-content-center align-items-center mt-3">
       {% if 'true' in success %} {% if average_xception >= 75 %}
-      <h2 class="display-5 text-center">This video is <span class="original">original</span></h2>
-      <img class="img-result" src="{% static 'img/original.png' %}" />
-      {% elif average_xception <= 25 %}
       <h2 class="display-5 text-center">This video is <span class="fake">fake</span></h2>
       <img class="img-result" src="{% static 'img/fake.png' %}" />
+      {% elif average_xception <= 25 %}
+      <h2 class="display-5 text-center">This video is <span class="original">original</span></h2>
+      <img class="img-result" src="{% static 'img/original.png' %}" />
       {% else %}
       <h2 class="display-5 text-center">
         This video is <span class="suspicious">suspicious</span>
@@ -78,10 +78,19 @@
     </div>
 
     <!-- Video -->
-    <div class="d-flex justify-content-center mt-3">
-      <video controls autoplay>
-        <source src="http://127.0.0.2:8000/media/result.mp4" />
-      </video>
+    <div class="d-flex justify-content-center">
+      <div class="row mt-3" style="width: 95%">
+        <div class="col-md-6 d-flex justify-content-end">
+          <video controls autoplay style="margin-right: 20px">
+            <source src="{% static 'result/result.mp4' %}" />
+          </video>
+        </div>
+        <div class="col-md-6 d-flex justify-content-start">
+          <div class="d-flex xception_wrapper">
+            <canvas id="xception_chart"></canvas>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="container d-flex justify-content-center w-50 mt-3">
@@ -93,12 +102,12 @@
             {% if average_inception >= 75 %}
             <p class="lead">
               InceptionV3 average:
-              <span class="original">{{average_inception}}%</span>
+              <span class="fake">{{average_inception}}%</span>
             </p>
             {% elif average_inception <= 25 %}
             <p class="lead">
               InceptionV3 average:
-              <span class="fake">{{average_inception}}%</span>
+              <span class="original">{{average_inception}}%</span>
             </p>
             {% else %}
             <p class="lead">
@@ -108,10 +117,12 @@
             {% endif %} {% if average_xception >= 75 %}
             <p class="lead">
               Xception average:
-              <span class="original">{{average_xception}}%</span>
+              <span class="fake">{{average_xception}}%</span>
             </p>
             {% elif average_xception <= 25 %}
-            <p class="lead">Xception average: <span class="fake">{{average_xception}}%</span></p>
+            <p class="lead">
+              Xception average: <span class="original">{{average_xception}}%</span>
+            </p>
             {% else %}
             <p class="lead">
               Xception average:
@@ -120,10 +131,12 @@
             {% endif %} {% if average_densenet >= 75 %}
             <p class="lead">
               Densenet average:
-              <span class="original">{{average_densenet}}%</span>
+              <span class="fake">{{average_densenet}}%</span>
             </p>
             {% elif average_densenet <= 25 %}
-            <p class="lead">Densenet average: <span class="fake">{{average_densenet}}%</span></p>
+            <p class="lead">
+              Densenet average: <span class="original">{{average_densenet}}%</span>
+            </p>
             {% else %}
             <p class="lead">
               Densenet average:
@@ -145,11 +158,11 @@
       </div>
     </div>
 
-    <!-- Graphic -->
+    <!-- Multiple chart  -->
     {% if 'true' in success %}
-    <h2 class="text-center display-6 mt-3">Predictions chart</h2>
+    <h2 class="text-center display-6 mt-3">Multiple models chart</h2>
     <div class="chart_wrapper d-flex justify-content-center w-50 mt-3">
-      <canvas id="chart"></canvas>
+      <canvas id="multi_pred_chart"></canvas>
     </div>
     {% endif %}
 
@@ -171,12 +184,13 @@
     {% endblock %}
   </body>
 
+  <!-- Charts script -->
   <script>
     var inception = {{data_inception | safe}}
     var xception = {{data_xception | safe}}
     var densenet = {{data_densenet | safe}}
 
-    const data = {
+    const multi_pred_chart_data = {
       datasets: [
         {
           label: "InceptionV3",
@@ -196,6 +210,17 @@
       ],
     };
 
+    var pointBackgroundColors = [];
+    const xception_chart_data = {
+      datasets: [
+        {
+          label: "Xception",
+          data: xception,
+          backgroundColor: pointBackgroundColors,
+        },
+      ],
+    };
+
     const plugin = {
       id: "custom_canvas_background_color",
       beforeDraw: (chart) => {
@@ -208,14 +233,68 @@
       },
     };
 
-    const config = {
+    const config_xception = {
       type: "scatter",
-      data: data,
+      data: xception_chart_data,
       options: {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          beginAtZero: true,
+          yAxes: [{
+            min: 0,
+            max: 1,
+            scaleLabel: {
+              display: true,
+              labelString: 'Fakeness meter'
+            }
+          }],
+          xAxes: [{
+            beginAtZero: true,
+            scaleLabel: {
+              display: true,
+              labelString: 'Frames analyzed'
+            }
+          }],
+          x: {
+            type: "linear",
+            position: "bottom",
+          },
+          y: {
+            suggestedMin: 0,
+            suggestedMax: 1.0
+          }
+        },
+        legend: {
+          labels: {
+            boxWidth: 0,
+          }
+        },
+      },
+      plugins: [plugin]
+    };
+
+    const config_multi = {
+      type: "scatter",
+      data: multi_pred_chart_data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          yAxes: [{
+            min: 0,
+            max: 1,
+            scaleLabel: {
+              display: true,
+              labelString: 'Fakeness meter'
+            }
+          }],
+          xAxes: [{
+            beginAtZero: true,
+            scaleLabel: {
+              display: true,
+              labelString: 'Frames analyzed'
+            }
+          }],
           x: {
             type: "linear",
             position: "bottom",
@@ -228,7 +307,22 @@
       },
       plugins: [plugin]
     };
-    var ctx = document.getElementById("chart").getContext("2d");
-    var myChart = new Chart(ctx, config);
+
+    var ctx_multi = document.getElementById("multi_pred_chart").getContext("2d");
+    var multi_pred_chart = new Chart(ctx_multi, config_multi);
+    var ctx_xception = document.getElementById("xception_chart").getContext("2d");
+    var xception_chart = new Chart(ctx_xception, config_xception);
+
+    for (i = 0; i < xception_chart.data.datasets[0].data.length; i++) {
+      if (xception_chart.data.datasets[0].data[i].y >= 0.75) {
+        pointBackgroundColors.push("rgb(255, 0, 0)");
+      } else if (xception_chart.data.datasets[0].data[i].y <= 0.25) {
+        pointBackgroundColors.push("rgb(0, 155, 0)");
+      }
+      else {
+        pointBackgroundColors.push("rgb(252, 183, 43)");
+      }
+    }
+    xception_chart.update();
   </script>
 </html>

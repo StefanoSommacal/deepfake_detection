@@ -2,8 +2,18 @@
   height: 400px;
 }
 
-canvas {
+.chart_wrapper canvas {
   margin: 0 auto;
   position: absolute;
   left: 25%;
+}
+
+.xception_wrapper {
+  height: auto;
+  width: 80%;
+  margin-left: 20px;
+}
+
+.xception_wrapper canvas {
+  margin: 0 auto;
 }

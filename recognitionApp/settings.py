@@ -110,8 +110,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 TEMP_URL = '/temp/'
 TEMP_ROOT = os.path.join(BASE_DIR, 'temp')
 
-VIDEO_URL = '/video/'
-VIDEO_ROOT = os.path.join(BASE_DIR, 'video')
+VIDEO_URL = '/static/video/'
+VIDEO_ROOT = os.path.join(BASE_DIR, 'static', 'video')
 
 MODEL_URL = '/models/'
 MODEL_ROOT = os.path.join(BASE_DIR, 'models')
