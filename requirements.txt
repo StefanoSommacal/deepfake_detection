@@ -1,5 +1,5 @@
 opencv_python==4.5.1.48
+natsort==7.1.1
 dlib==19.22.0
 Keras==2.4.3
-natsort==7.1.1
-Django==3.2
+Django==3.2.4

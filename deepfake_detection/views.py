@@ -1,4 +1,3 @@
-import json
 import os
 import cv2
 import dlib
@@ -12,8 +11,6 @@ from django.conf import settings
 from keras.models import load_model
 from natsort import natsorted
 
-
-video_dir = 'http://127.0.0.2:8000/video/'  # video directory on server
 
 # load models
 inception_path = os.path.join(settings.MODEL_ROOT, 'InceptionV3_Face2Face.h5')
@@ -41,11 +38,12 @@ def clear_temp():
 
 
 # CLEAR MEDIA FOLDER
-def clear_media():
+def clear_result_dir():
 
-    if os.path.exists(settings.MEDIA_ROOT):
-        shutil.rmtree(settings.MEDIA_ROOT)
-    os.makedirs(settings.MEDIA_ROOT)
+    result_dir = os.path.join(settings.STATICFILES_DIRS[0], 'result')
+    if os.path.exists(result_dir):
+        shutil.rmtree(result_dir)
+    os.makedirs(result_dir)
 
 
 # CHOOSE 12 RANDOM VIDEOS FROM VIDEO DIRECTORY
@@ -59,14 +57,14 @@ def choose_random_videos():
     f.close()
 
     for i in range(len(manipulated)):
-        manipulated[i] = video_dir + 'manipulated/' + manipulated[i]
+        manipulated[i] = os.path.join('video', 'manipulated', manipulated[i])
 
     with open(os.path.join(settings.VIDEO_ROOT, 'original' , 'original.txt'), 'r') as f:
         original = f.read().splitlines()
     f.close()
 
     for i in range(len(original)):
-        original[i] = video_dir + 'original/' + original[i]
+        original[i] = os.path.join('video', 'original', original[i])
 
     random.shuffle(manipulated)
     random.shuffle(original)
@@ -120,23 +118,29 @@ def write_frame(frame, dir, resize_width, index):
 # DRAW BOX AROUND THE FACE AND ADD LABEL WITH PREDICTION
 def bound_frame(frame, prediction, x, y, size):
 
-    if prediction >= 0.75:
+    if prediction <= 0.25:
         bounded_frame = cv2.rectangle(frame, (x, y), (x+size, y+size), (0,155,0), 2)
-        cv2.putText(bounded_frame, 'Original: ' + str(round(prediction*100, 2)) + '%', (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,155,0), 2)
-    elif prediction <= 0.25:
+        cv2.putText(bounded_frame, 'Fake: ' + str(round((prediction)*100, 2)) + '%', (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,155,0), 2)
+    elif prediction >= 0.75:
         bounded_frame = cv2.rectangle(frame, (x, y), (x+size, y+size), (0,0,255), 2)
-        cv2.putText(bounded_frame, 'Original: ' + str(round(prediction*100, 2)) + '%', (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 2)
+        cv2.putText(bounded_frame, 'Fake: ' + str(round((prediction)*100, 2)) + '%', (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,0,255), 2)
     else:
         bounded_frame = cv2.rectangle(frame, (x, y), (x+size, y+size), (43,183,252), 2)
-        cv2.putText(bounded_frame, 'Original: ' + str(round(prediction*100, 2)) + '%', (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (43,183,252), 2)
+        cv2.putText(bounded_frame, 'Fake: ' + str(round((prediction)*100, 2)) + '%', (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (43,183,252), 2)
 
     return bounded_frame
 
 
-# EXTRACTS ALL FRAMES FROM THE VIDEO AND RETURNS FRAMES, DIMENSIONS
-def extract_frames(video, frames_dir):
+# EXTRACTS ALL FRAMES FROM THE VIDEO AND PREDICTS
+def extract_and_predict(video):
 
-    cap = cv2.VideoCapture(video)
+    video_path, work_dir = get_paths(video)
+
+    frames_dir = os.path.join(work_dir, 'frames')       # create directory for frames
+    if not os.path.exists(frames_dir):     
+        os.makedirs(frames_dir)
+
+    cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
     fps = int(round(fps, 0))
     n_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
@@ -175,9 +179,9 @@ def extract_frames(video, frames_dir):
                 face = face / 255
                 face = cv2.resize(face, (299, 299), interpolation=cv2.INTER_AREA)
                 face = face.reshape(1, 299, 299, channels)
-                inception_predictions.append(inception.predict(face)[0][0])
-                xception_predictions.append(xception.predict(face)[0][0])
-                densenet_predictions.append(densenet.predict(face)[0][0])
+                inception_predictions.append(1-inception.predict(face)[0][0])
+                xception_predictions.append(1-xception.predict(face)[0][0])
+                densenet_predictions.append(1-densenet.predict(face)[0][0])
                 predictions_indexes.append(i)
 
                 for j in range(i, i+int(step)):
@@ -196,21 +200,7 @@ def extract_frames(video, frames_dir):
 
     cap.release()
 
-    return inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps, n_frames
-
-
-# GET PREDICTION ON EACH FRAME, BOUND FACES AND WRITE FRAME IN A DIRECTORY
-def create_prediction(video):
-
-    video_path, work_dir = get_paths(video)
-
-    frames_dir = os.path.join(work_dir, 'frames')       # create directory for frames
-    if not os.path.exists(frames_dir):     
-        os.makedirs(frames_dir)
-
-    inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps, n_frames = extract_frames(video_path, frames_dir)
-
-    return frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps, n_frames
+    return frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps
 
 
 # GENERATE VIDEO FROM EXTRACTED FRAMES
@@ -220,8 +210,12 @@ def generate_video(frames_dir, fps):
 
     height, width = cv2.imread(os.path.join(frames_dir, bounded_frames[0])).shape[:2]   # get width and height
 
+    video_dir = os.path.join(settings.STATICFILES_DIRS[0], 'result')
+    if not os.path.exists(video_dir):
+        os.makedirs(video_dir)
+
     fourcc = cv2.VideoWriter_fourcc(*'AVC1')        # set encoder
-    video = cv2.VideoWriter(os.path.join(settings.TEMP_ROOT, 'result.mp4'), fourcc, fps, (width, height))       # set result path
+    video = cv2.VideoWriter(os.path.join(video_dir, 'result.mp4'), fourcc, fps, (width, height))       # set result path
 
     for frame in bounded_frames:        # write frames
         video.write(cv2.imread(os.path.join(frames_dir, frame)))
@@ -229,12 +223,7 @@ def generate_video(frames_dir, fps):
     cv2.destroyAllWindows() 
     video.release()
 
-    fs = FileSystemStorage()
-    with open(os.path.join(settings.TEMP_ROOT, 'result.mp4'), 'rb') as video:       # save in media directory
-        file = fs.save('result.mp4', video)
-        file = fs.url(file)
-
-    return file, height, width
+    return height, width
 
 
 # RENDERS HOME PAGE FOR DEEPFAKE DETECTION
@@ -252,36 +241,36 @@ def index(request):
 # RENDERS PAGE WITH RESULTS
 def predict_video(request):
 
-    clear_media()
+    clear_result_dir()
     clear_temp()
 
-    if not 'uploaded_video_name' in request.FILES: 
+    if not 'upload' in request.FILES: 
         video_path = request.POST['sample']
-        video_name = video_path.split('/')[5]
+        head, video_name = os.path.split(video_path)
 
         if '_' in video_name:
             with open(os.path.join(settings.VIDEO_ROOT, 'manipulated', video_name), 'rb') as video:
                 start_time = datetime.datetime.now().timestamp()
-                frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps, n_frames = create_prediction(video)
+                frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps = extract_and_predict(video)
                 time = round(datetime.datetime.now().timestamp() - start_time, 2)
             video.close()
         
         else:
             with open(os.path.join(settings.VIDEO_ROOT, 'original', video_name), 'rb') as video:
                 start_time = datetime.datetime.now().timestamp()
-                frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps, n_frames = create_prediction(video)
+                frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps = extract_and_predict(video)
                 time = round(datetime.datetime.now().timestamp() - start_time, 2)
             video.close()
 
     else:
-        video = request.FILES['uploaded_video_name']
+        video = request.FILES['upload']
         video_name = video.name
 
         start_time = datetime.datetime.now().timestamp()
-        frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps = create_prediction(video)
+        frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps = extract_and_predict(video)
         time = round(datetime.datetime.now().timestamp() - start_time, 2)
 
-    result_path, height, width = generate_video(frames_dir, fps)
+    height, width = generate_video(frames_dir, fps)
 
     clear_temp()
 
@@ -306,7 +295,6 @@ def predict_video(request):
 
         context = {
             'time': time,
-            'result_path': result_path,
             'video_name': video_name,
             'width': width, 
             'height': height,
@@ -325,7 +313,6 @@ def predict_video(request):
     else:
         context = {
             'time': time,
-            'result_path': result_path,
             'video_name': video_name,
             'width': width, 
             'height': height,
