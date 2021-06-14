@@ -77,7 +77,8 @@
       <p class="lead">Elapsed time: {{time}}''</p>
     </div>
 
-    <!-- Video -->
+    {% if 'true' in success %}
+    <!-- Video and chart -->
     <div class="d-flex justify-content-center">
       <div class="row mt-3" style="width: 95%">
         <div class="col-md-6 d-flex justify-content-end">
@@ -92,6 +93,13 @@
         </div>
       </div>
     </div>
+    {% else %}
+    <div class="d-flex justify-content-center mt-3">
+      <video controls autoplay style="margin-right: 20px">
+        <source src="{% static 'result/result.mp4' %}" />
+      </video>
+    </div>
+    {% endif %}
 
     <div class="container d-flex justify-content-center w-50 mt-3">
       <!-- Models results -->

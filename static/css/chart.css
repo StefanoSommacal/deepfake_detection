@@ -9,6 +9,7 @@
 }
 
 .xception_wrapper {
+  max-height: 480px;
   height: auto;
   width: 80%;
   margin-left: 20px;
