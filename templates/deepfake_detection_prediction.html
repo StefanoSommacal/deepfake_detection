@@ -82,75 +82,66 @@
     <div class="d-flex justify-content-center">
       <div class="row mt-3" style="width: 95%">
         <div class="col-md-6 d-flex justify-content-end">
-          <video controls autoplay style="margin-right: 20px">
-            <source src="{% static 'result/result.mp4' %}" />
+          <video
+            controls="true"
+            disablePictureInPicture
+            controlsList="nodownload"
+            autoplay
+            style="margin-right: 20px"
+            height="100%"
+          >
+            <source src="{% static result %}" />
           </video>
         </div>
         <div class="col-md-6 d-flex justify-content-start">
           <div class="d-flex xception_wrapper">
-            <canvas id="xception_chart"></canvas>
+            <canvas id="xception_chart" style="width: 100%"></canvas>
           </div>
         </div>
       </div>
     </div>
     {% else %}
     <div class="d-flex justify-content-center mt-3">
-      <video controls autoplay style="margin-right: 20px">
-        <source src="{% static 'result/result.mp4' %}" />
+      <video controls disablePictureInPicture controlsList="nodownload" autoplay>
+        <source src="{% static result %}" />
       </video>
     </div>
     {% endif %}
 
-    <div class="container d-flex justify-content-center w-50 mt-3">
+    <div class="container d-flex justify-content-center mt-3">
       <!-- Models results -->
-      <div class="card-group w-75">
+      <div class="card-group" style="width: 70%">
         <div class="card results">
           <div class="card-body">
-            <h2 class="display-6">Models results</h2>
-            {% if average_inception >= 75 %}
-            <p class="lead">
-              InceptionV3 average:
+            <h2 class="text-end display-6">Models results</h2>
+
+            <p class="text-end lead">
+              InceptionV3 average: {% if average_inception >= 75 %}
               <span class="fake">{{average_inception}}%</span>
-            </p>
-            {% elif average_inception <= 25 %}
-            <p class="lead">
-              InceptionV3 average:
+              {% elif average_inception <= 25 %}
               <span class="original">{{average_inception}}%</span>
-            </p>
-            {% else %}
-            <p class="lead">
-              InceptionV3 average:
+              {% else %}
               <span class="suspicious">{{average_inception}}%</span>
+              {% endif %}
             </p>
-            {% endif %} {% if average_xception >= 75 %}
-            <p class="lead">
-              Xception average:
-              <span class="fake">{{average_xception}}%</span>
-            </p>
-            {% elif average_xception <= 25 %}
-            <p class="lead">
-              Xception average: <span class="original">{{average_xception}}%</span>
-            </p>
-            {% else %}
-            <p class="lead">
-              Xception average:
-              <span class="suspicious">{{average_xception}}%</span>
-            </p>
-            {% endif %} {% if average_densenet >= 75 %}
-            <p class="lead">
-              Densenet average:
+            <p class="text-end lead">
+              Densenet average: {% if average_densenet >= 75 %}
               <span class="fake">{{average_densenet}}%</span>
-            </p>
-            {% elif average_densenet <= 25 %}
-            <p class="lead">
-              Densenet average: <span class="original">{{average_densenet}}%</span>
-            </p>
-            {% else %}
-            <p class="lead">
-              Densenet average:
+              {% elif average_densenet <= 25 %}
+              <span class="original">{{average_densenet}}%</span>
+              {% else %}
               <span class="suspicious">{{average_densenet}}%</span>
+              {% endif %}
             </p>
-            {% endif %}
+            <p class="text-end lead">
+              Xception average: {% if average_xception >= 75 %}
+              <span class="fake">{{average_xception}}%</span>
+              {% elif average_xception <= 25 %}
+              <span class="original">{{average_xception}}%</span>
+              {% else %}
+              <span class="suspicious">{{average_xception}}%</span>
+              {% endif %}
+            </p>
           </div>
         </div>
 

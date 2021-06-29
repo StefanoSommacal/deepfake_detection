@@ -31,11 +31,11 @@
       integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8"
       crossorigin="anonymous"
     ></script>
-
+    <script src="{% static 'js/owl.carousel.min.js'%}"></script>
     <script src="{% static 'js/owl.carousel.js'%}"></script>
     <script src="{% static 'js/owl.navigation.js'%}"></script>
-    <script src="{% static 'js/dr_scripts.js'%}"></script>
     <script src="{% static 'js/zepto.js'%}"></script>
+    <script src="{% static 'js/dr_scripts.js'%}"></script>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.gstatic.com" />
@@ -67,14 +67,28 @@
         {% csrf_token %}
 
         <!-- Sample selection -->
-        <h2 class="display-6 text-center mt-5">Here you can choose one of our samples:</h2>
+        <h2 class="display-6 text-center mt-5">Choose one of the samples...</h2>
+        <p class="lead text-center" style="font-size: 1.05rem">
+          (Samples taken from
+          <a href="https://github.com/ondyari/FaceForensics" target="_blank" style="color: #ffff"
+            >FaceForensics++</a
+          >)
+        </p>
         <div class="d-flex justify-content-center mt-3">
           <div class="card ext w-75">
             <div class="owl-carousel owl-theme">
-              {% for video in videos %}
+              {% for video, placeholder in media %}
               <div class="card card-body d-flex justify-content-center" style="height: 300px">
-                <video controls height="80%">
+                <video
+                  controls="true"
+                  disablePictureInPicture
+                  controlsList="nodownload"
+                  type="video/mp4"
+                  height="80%"
+                  poster="{% static placeholder %}"
+                >
                   <source src="{% static video %}" />
+                  Your browser does not support MP4.
                 </video>
                 <div
                   class="card-footer d-flex justify-content-center align-items-center custom-radios"
@@ -93,7 +107,7 @@
         </div>
 
         <!-- Upload form -->
-        <h2 class="display-6 text-center mt-3">Otherwise, you can upload a video here:</h2>
+        <h2 class="display-6 text-center mt-3">...or upload a video</h2>
         <div class="d-flex justify-content-center">
           <div class="form-group my-3">
             <div class="file-input">

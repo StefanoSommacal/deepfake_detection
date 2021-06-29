@@ -5,12 +5,17 @@ import shutil
 import datetime
 import random
 import math
+import secrets
 from django.core.files.storage import FileSystemStorage
 from django.shortcuts import render
 from django.conf import settings
 from keras.models import load_model
 from natsort import natsorted
+from numpy.lib.function_base import place
+from tensorflow.python.keras.backend import placeholder
 
+if not os.path.exists(settings.TEMP_ROOT):
+    os.makedirs(settings.TEMP_ROOT)
 
 # load models
 inception_path = os.path.join(settings.MODEL_ROOT, 'InceptionV3_Face2Face.h5')
@@ -30,58 +35,59 @@ def truncate(number, digits) -> float:
 
 
 # CLEAR TEMPORARY FOLDER
-def clear_temp():
+def clear_temp(token):
 
-    if os.path.exists(settings.TEMP_ROOT):
-        shutil.rmtree(settings.TEMP_ROOT)
-    os.makedirs(settings.TEMP_ROOT) 
-
-
-# CLEAR MEDIA FOLDER
-def clear_result_dir():
-
-    result_dir = os.path.join(settings.STATICFILES_DIRS[0], 'result')
-    if os.path.exists(result_dir):
-        shutil.rmtree(result_dir)
-    os.makedirs(result_dir)
+    dir = os.path.join(settings.TEMP_ROOT, token)
+    if os.path.exists(dir):
+        shutil.rmtree(dir)                              # delete user data when useless
+        old_dirs = os.listdir(settings.TEMP_ROOT)
+        for old_dir in old_dirs:                        # delete old folders that were not deleted for some reason
+            path = os.path.join(settings.TEMP_ROOT, old_dir)
+            if os.path.exists(path) and datetime.datetime.now().timestamp() - os.path.getctime(path) >= 600:  
+                shutil.rmtree(path)
 
 
-# CHOOSE 12 RANDOM VIDEOS FROM VIDEO DIRECTORY
+# CHOOSE 6 RANDOM VIDEOS FROM VIDEO DIRECTORY + RELATIVE PLACEHOLDERS
 def choose_random_videos():
 
     manipulated = []
     original = []
 
-    with open(os.path.join(settings.VIDEO_ROOT, 'manipulated' , 'manipulated.txt'), 'r') as f:
-        manipulated = f.read().splitlines()
-    f.close()
+    videos = []
+    placeholders = []
 
-    for i in range(len(manipulated)):
-        manipulated[i] = os.path.join('video', 'manipulated', manipulated[i])
-
-    with open(os.path.join(settings.VIDEO_ROOT, 'original' , 'original.txt'), 'r') as f:
-        original = f.read().splitlines()
-    f.close()
-
-    for i in range(len(original)):
-        original[i] = os.path.join('video', 'original', original[i])
+    manipulated = os.listdir(os.path.join(settings.VIDEO_ROOT, 'manipulated'))
+    original = os.listdir(os.path.join(settings.VIDEO_ROOT, 'original'))
 
     random.shuffle(manipulated)
     random.shuffle(original)
 
-    return manipulated[:6] + original[:6]
+    videos = manipulated[:3] + original[:3]
+    random.shuffle(videos)
+
+    i = 0
+    for video in videos:
+        name = os.path.splitext(video)[0]
+        placeholders.append(os.path.join('placeholders', str(name) + '.png'))
+        if '_' in name:
+            videos[i] = os.path.join( 'video', 'manipulated', video)
+        else: 
+            videos[i] = os.path.join('video', 'original', video)
+        i += 1
+
+    return videos, placeholders
 
 
 # SAVE VIDEO IN TEMP DIR AND RETURNS ITS PATH AND THE DIR PATH
-def get_paths(video):
+def get_paths(video, token):
 
     video_name = os.path.basename(video.name)
     video_name = os.path.splitext(video_name)[0]
-    work_dir = os.path.join(settings.TEMP_ROOT, video_name)
+    work_dir = os.path.join(settings.TEMP_ROOT, token)
 
     fs = FileSystemStorage(location=work_dir, base_url=work_dir)
-    file = fs.save(video_name + '.mp4', video)   # save in media folder
-    file = fs.url(file)
+    file = fs.save(video_name + '.mp4', video)                      # save in temp folder
+    file = fs.url(file)                                             # get file name
     video_path = os.path.join(work_dir, file)
 
     return video_path, work_dir
@@ -132,9 +138,9 @@ def bound_frame(frame, prediction, x, y, size):
 
 
 # EXTRACTS ALL FRAMES FROM THE VIDEO AND PREDICTS
-def extract_and_predict(video):
+def extract_and_predict(video, token):
 
-    video_path, work_dir = get_paths(video)
+    video_path, work_dir = get_paths(video, token)
 
     frames_dir = os.path.join(work_dir, 'frames')       # create directory for frames
     if not os.path.exists(frames_dir):     
@@ -176,12 +182,15 @@ def extract_and_predict(video):
                 x, y, size = get_boundingbox(face, width, height)   # get bounding box
                 face = frame[y:y+size, x:x+size]   
 
-                face = face / 255
-                face = cv2.resize(face, (299, 299), interpolation=cv2.INTER_AREA)
-                face = face.reshape(1, 299, 299, channels)
-                inception_predictions.append(1-inception.predict(face)[0][0])
-                xception_predictions.append(1-xception.predict(face)[0][0])
-                densenet_predictions.append(1-densenet.predict(face)[0][0])
+                face_ix = face / 255
+                face_ix = cv2.resize(face_ix, (299, 299), interpolation=cv2.INTER_AREA)
+                face_ix = face_ix.reshape(1, 299, 299, channels)
+                inception_predictions.append(1-inception.predict(face_ix)[0][0])
+                xception_predictions.append(1-xception.predict(face_ix)[0][0])
+                face_d = face / 255
+                face_d = cv2.resize(face_d, (224, 224), interpolation=cv2.INTER_AREA)
+                face_d = face_d.reshape(1, 224, 224, channels)
+                densenet_predictions.append(1-densenet.predict(face_d)[0][0])
                 predictions_indexes.append(i)
 
                 for j in range(i, i+int(step)):
@@ -204,18 +213,18 @@ def extract_and_predict(video):
 
 
 # GENERATE VIDEO FROM EXTRACTED FRAMES
-def generate_video(frames_dir, fps):
+def generate_video(frames_dir, fps, token):
 
     bounded_frames = natsorted(os.listdir(frames_dir))      # get frames sorted by name (1.png to n.png)
 
     height, width = cv2.imread(os.path.join(frames_dir, bounded_frames[0])).shape[:2]   # get width and height
 
-    video_dir = os.path.join(settings.STATICFILES_DIRS[0], 'result')
+    video_dir = os.path.join(settings.STATICFILES_DIRS[0], 'results')
     if not os.path.exists(video_dir):
         os.makedirs(video_dir)
 
-    fourcc = cv2.VideoWriter_fourcc(*'AVC1')        # set encoder
-    video = cv2.VideoWriter(os.path.join(video_dir, 'result.mp4'), fourcc, fps, (width, height))       # set result path
+    fourcc = cv2.VideoWriter_fourcc(*'vp80')        # set encoder
+    video = cv2.VideoWriter(os.path.join(video_dir, token + '.webm'), fourcc, fps, (width, height))       # set result path
 
     for frame in bounded_frames:        # write frames
         video.write(cv2.imread(os.path.join(frames_dir, frame)))
@@ -229,10 +238,12 @@ def generate_video(frames_dir, fps):
 # RENDERS HOME PAGE FOR DEEPFAKE DETECTION
 def index(request):
 
-    videos = choose_random_videos()
+    videos, placeholders = choose_random_videos()
+
+    media = zip(videos, placeholders)
 
     context = {
-        'videos': videos
+        'media': media
     }
 
     return render(request, 'deepfake_detection.html', context)
@@ -241,8 +252,7 @@ def index(request):
 # RENDERS PAGE WITH RESULTS
 def predict_video(request):
 
-    clear_result_dir()
-    clear_temp()
+    token = secrets.token_hex(16)
 
     if not 'upload' in request.FILES: 
         video_path = request.POST['sample']
@@ -251,14 +261,14 @@ def predict_video(request):
         if '_' in video_name:
             with open(os.path.join(settings.VIDEO_ROOT, 'manipulated', video_name), 'rb') as video:
                 start_time = datetime.datetime.now().timestamp()
-                frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps = extract_and_predict(video)
+                frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps = extract_and_predict(video, token)
                 time = round(datetime.datetime.now().timestamp() - start_time, 2)
             video.close()
         
         else:
             with open(os.path.join(settings.VIDEO_ROOT, 'original', video_name), 'rb') as video:
                 start_time = datetime.datetime.now().timestamp()
-                frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps = extract_and_predict(video)
+                frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps = extract_and_predict(video, token)
                 time = round(datetime.datetime.now().timestamp() - start_time, 2)
             video.close()
 
@@ -267,12 +277,12 @@ def predict_video(request):
         video_name = video.name
 
         start_time = datetime.datetime.now().timestamp()
-        frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps = extract_and_predict(video)
+        frames_dir, inception_predictions, xception_predictions, densenet_predictions, predictions_indexes, fps = extract_and_predict(video, token)
         time = round(datetime.datetime.now().timestamp() - start_time, 2)
 
-    height, width = generate_video(frames_dir, fps)
+    height, width = generate_video(frames_dir, fps, token)
 
-    clear_temp()
+    clear_temp(token)
 
     if inception_predictions != []: 
         average_inception = sum(inception_predictions) / len(inception_predictions)
@@ -294,6 +304,7 @@ def predict_video(request):
             data_densenet.append({"x": predictions_indexes[i], "y": densenet_predictions[i]})
 
         context = {
+            'result': 'results/' + token + '.webm',
             'time': time,
             'video_name': video_name,
             'width': width, 

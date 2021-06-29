@@ -1,5 +1,5 @@
 .chart_wrapper {
-  height: 400px;
+  height: 50%;
 }
 
 .chart_wrapper canvas {
@@ -9,7 +9,7 @@
 }
 
 .xception_wrapper {
-  max-height: 480px;
+  max-height: 100%;
   height: auto;
   width: 80%;
   margin-left: 20px;

@@ -1,5 +1,8 @@
-opencv_python==4.5.1.48
-natsort==7.1.1
 dlib==19.22.0
-Keras==2.4.3
+opencv_python==4.5.1.48
+numpy==1.19.2
+tensorflow==2.4.1
 Django==3.2.4
+natsort==7.1.1
+Keras==2.4.3
+secrets==1.0.2
