@@ -53,9 +53,9 @@
     <div id="non_loading">
       <!-- Navbar -->
       <div class="nav-container">
-        <a class="active home" href="/">Home</a>
+        <a class="active home" href="/deepfake_detection">Home</a>
         <div class="nav-right">
-          <a href="/about">About</a>
+          <a href="/deepfake_detection/about">About</a>
         </div>
       </div>
 
@@ -63,7 +63,7 @@
       <h2 class="text-center display-4">Deepfake detection</h2>
 
       <!-- Input form -->
-      <form method="post" enctype="multipart/form-data" action="predict_video">
+      <form method="post" enctype="multipart/form-data" action="predict_video/">
         {% csrf_token %}
 
         <!-- Sample selection -->
@@ -108,6 +108,7 @@
 
         <!-- Upload form -->
         <h2 class="display-6 text-center mt-3">...or upload a video</h2>
+        <p class="lead text-center" style="font-size: 1.05rem">Maximum video size: 100MB</p>
         <div class="d-flex justify-content-center">
           <div class="form-group my-3">
             <div class="file-input">
@@ -123,7 +124,7 @@
         <br />
 
         <!-- Submit button -->
-        <div class="d-flex justify-content-center mt-3">
+        <div class="d-flex justify-content-center mt-2">
           <input type="submit" value="Submit" class="custom-button" id="submit" disabled />
         </div>
       </form>

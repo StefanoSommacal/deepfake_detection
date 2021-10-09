@@ -11,8 +11,7 @@ from django.shortcuts import render
 from django.conf import settings
 from keras.models import load_model
 from natsort import natsorted
-from numpy.lib.function_base import place
-from tensorflow.python.keras.backend import placeholder
+
 
 if not os.path.exists(settings.TEMP_ROOT):
     os.makedirs(settings.TEMP_ROOT)
@@ -83,6 +82,7 @@ def get_paths(video, token):
 
     video_name = os.path.basename(video.name)
     video_name = os.path.splitext(video_name)[0]
+    video_name = video_name.replace(" ", "")
     work_dir = os.path.join(settings.TEMP_ROOT, token)
 
     fs = FileSystemStorage(location=work_dir, base_url=work_dir)

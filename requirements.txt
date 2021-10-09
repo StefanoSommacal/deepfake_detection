@@ -1,8 +1,7 @@
 dlib==19.22.0
+keras_nightly==2.5.0.dev2021032900
 opencv_python==4.5.1.48
-numpy==1.19.2
-tensorflow>=2.4.2
-Django==3.2.4
+Django==3.2.8
 natsort==7.1.1
-Keras==2.4.3
+keras==2.6.0
 secrets==1.0.2

@@ -47,10 +47,10 @@
 
     <!-- Navbar -->
     <div class="nav-container">
-      <a class="active home" href="/">Home</a>
+      <a class="active home" href="/deepfake_detection">Home</a>
       <div class="nav-right">
-        <a href="/deepfake_detection">Go back</a>
-        <a href="/about">About</a>
+        <a href="/deepfake_detection/scanner">Go back</a>
+        <a href="/deepfake_detection/about">About</a>
       </div>
     </div>
 
@@ -95,7 +95,7 @@
         </div>
         <div class="col-md-6 d-flex justify-content-start">
           <div class="d-flex xception_wrapper">
-            <canvas id="xception_chart" style="width: 100%"></canvas>
+            <canvas id="xception_chart" style="width: 100%; height: 480px"></canvas>
           </div>
         </div>
       </div>
@@ -165,19 +165,10 @@
     </div>
     {% endif %}
 
-    <!-- Accuracy warning -->
-    <div class="container d-flex justify-content-center align-items-center mt-3 w-75">
-      <img src="{% static 'img/warning.png' %}" width="70" height="70" />
-      <p class="lead">
-        <span class="fake">WARNING!</span> Take this results with a grain of salt: they may not be
-        100% accurate.
-      </p>
-    </div>
-
     <!-- Back to home -->
     <h2 class="display-6 text-center go-back-text mt-3">Do you want to try again?</h2>
     <div class="d-flex justify-content-center go-back-button mt-3">
-      <a class="custom-button" href="/deepfake_detection" role="button"> Go back </a>
+      <a class="custom-button" href="/deepfake_detection/scanner" role="button"> Go back </a>
     </div>
 
     {% endblock %}
