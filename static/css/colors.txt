@@ -1,6 +1,0 @@
-arancio: fcb72b
-giallo: fdd828
-nero: 313236
-
-arancio 255, 144, 0
-viola 192, 0, 255
