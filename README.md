@@ -1,5 +1,7 @@
 # Deepfake Detection
 
+The app can be found by clicking [here](http://loki.disi.unitn.it/deepfake_detection/).
+
 ## How to run locally
 
 1. install Python 3.6 64-bit
